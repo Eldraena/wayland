@@ -161,8 +161,7 @@ static const struct wl_registry_listener registry_listener = {
     global_registry_remover
 };
 
-static void
-redraw(void *data, struct wl_callback *callback, uint32_t time) {
+static void redraw(void *data, struct wl_callback *callback, uint32_t time) {
     printf("Redrawing\n");
 }
 
@@ -170,8 +169,7 @@ static const struct wl_callback_listener frame_listener = {
     redraw
 };
 
-static void
-configure_callback(void *data, struct wl_callback *callback, uint32_t  time)
+static void configure_callback(void *data, struct wl_callback *callback, uint32_t  time)
 {
     if (callback == NULL)
 	redraw(data, NULL, time);
