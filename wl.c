@@ -28,39 +28,31 @@ EGLConfig egl_conf;
 EGLSurface egl_surface;
 EGLContext egl_context;
 
-
-static void
-pointer_handle_enter(void *data, struct wl_pointer *pointer,
-                     uint32_t serial, struct wl_surface *surface,
-                     wl_fixed_t sx, wl_fixed_t sy)
+static void pointer_handle_enter(void *data, struct wl_pointer *pointer,
+                     uint32_t serial, struct wl_surface *surface, wl_fixed_t sx, wl_fixed_t sy)
 {
     fprintf(stderr, "Pointer entered surface %p at %d %d\n", surface, sx, sy);
 }
 
-static void
-pointer_handle_leave(void *data, struct wl_pointer *pointer,
+static void pointer_handle_leave(void *data, struct wl_pointer *pointer,
                      uint32_t serial, struct wl_surface *surface)
 {
     fprintf(stderr, "Pointer left surface %p\n", surface);
 }
 
-static void
-pointer_handle_motion(void *data, struct wl_pointer *pointer,
+static void pointer_handle_motion(void *data, struct wl_pointer *pointer,
                       uint32_t time, wl_fixed_t sx, wl_fixed_t sy)
 {
     printf("Pointer moved at %d %d\n", sx, sy);
 }
 
-static void
-pointer_handle_button(void *data, struct wl_pointer *wl_pointer,
-                      uint32_t serial, uint32_t time, uint32_t button,
-                      uint32_t state)
+static void pointer_handle_button(void *data, struct wl_pointer *wl_pointer,
+                      uint32_t serial, uint32_t time, uint32_t button, uint32_t state)
 {
     printf("Pointer button\n");
 }
 
-static void
-pointer_handle_axis(void *data, struct wl_pointer *wl_pointer,
+static void pointer_handle_axis(void *data, struct wl_pointer *wl_pointer,
                     uint32_t time, uint32_t axis, wl_fixed_t value)
 {
         printf("Pointer handle axis\n");
@@ -74,8 +66,7 @@ static const struct wl_pointer_listener pointer_listener = {
     pointer_handle_axis,
 };
 
-static void
-seat_handle_capabilities(void *data, struct wl_seat *seat,
+static void seat_handle_capabilities(void *data, struct wl_seat *seat,
                          enum wl_seat_capability caps)
 {
     if ((caps & WL_SEAT_CAPABILITY_POINTER) && !pointer) {
@@ -91,8 +82,7 @@ static const struct wl_seat_listener seat_listener = {
     seat_handle_capabilities,
 };
 
-void
-global_registry_handler(void *data, struct wl_registry *registry, uint32_t id,
+void global_registry_handler(void *data, struct wl_registry *registry, uint32_t id,
 			const char *interface, uint32_t version)
 {
     printf("Got a registry event for %s id %d\n", interface, id);
@@ -112,8 +102,7 @@ global_registry_handler(void *data, struct wl_registry *registry, uint32_t id,
     }
 }
 
-static void
-global_registry_remover(void *data, struct wl_registry *registry, uint32_t id)
+static void global_registry_remover(void *data, struct wl_registry *registry, uint32_t id)
 {
     printf("Got a registry losing event for %d\n", id);
 }
@@ -122,7 +111,6 @@ static const struct wl_registry_listener registry_listener = {
     global_registry_handler,
     global_registry_remover
 };
-
 
 static void
 redraw(void *data, struct wl_callback *callback, uint32_t time) {
@@ -144,8 +132,7 @@ static struct wl_callback_listener configure_callback_listener = {
     configure_callback,
 };
 
-static void
-create_window() {
+static void create_window() {
     egl_window = wl_egl_window_create(surface,
 				      480, 360);
     if (egl_window == EGL_NO_SURFACE) {
@@ -171,7 +158,6 @@ create_window() {
     glClear(GL_COLOR_BUFFER_BIT);
     glFlush();
     
-
     if (eglSwapBuffers(egl_display, egl_surface)) {
 	fprintf(stderr, "Swapped buffers\n");
     } else {
@@ -182,22 +168,19 @@ create_window() {
 }
 
 
-static void
-handle_ping(void *data, struct wl_shell_surface *shell_surface,
+static void handle_ping(void *data, struct wl_shell_surface *shell_surface,
 	    uint32_t serial)
 {
 	wl_shell_surface_pong(shell_surface, serial);
 	fprintf(stderr, "Pinged and ponged\n");
 }
 
-static void
-handle_configure(void *data, struct wl_shell_surface *shell_surface,
+static void handle_configure(void *data, struct wl_shell_surface *shell_surface,
 		 uint32_t edges, int32_t width, int32_t height)
 {
 }
 
-static void
-handle_popup_done(void *data, struct wl_shell_surface *shell_surface)
+static void handle_popup_done(void *data, struct wl_shell_surface *shell_surface)
 {
 }
 
@@ -207,9 +190,7 @@ static const struct wl_shell_surface_listener shell_surface_listener = {
 	handle_popup_done
 };
 
-
-static void
-init_egl() {
+static void init_egl() {
     EGLint major, minor, count, n, size;
     EGLConfig *configs;
     EGLBoolean ret;
@@ -227,8 +208,7 @@ init_egl() {
 	EGL_CONTEXT_CLIENT_VERSION, 2,
 	EGL_NONE
     };
-
-    
+ 
     egl_display = eglGetDisplay((EGLNativeDisplayType) display);
     if (egl_display == EGL_NO_DISPLAY) {
 	fprintf(stderr, "Can't create egl display\n");
@@ -243,7 +223,7 @@ init_egl() {
     }
     printf("EGL major: %d, minor %d\n", major, minor);
 
-    if (! eglBindAPI(EGL_OPENGL_ES_API)) {
+    if (!eglBindAPI(EGL_OPENGL_ES_API)) {
 	fprintf(stderr, "Can't bind API\n");
 	exit(1);
     } else {
@@ -274,11 +254,9 @@ init_egl() {
 	eglCreateContext(egl_display,
 			 egl_conf,
 			 EGL_NO_CONTEXT, context_attribs);
-
 }
 
 int main(int argc, char **argv) {
-
     display = wl_display_connect(NULL);
     if (display == NULL) {
 	fprintf(stderr, "Can't connect to display\n");
@@ -310,10 +288,8 @@ int main(int argc, char **argv) {
     shell_surface = wl_shell_get_shell_surface(shell, surface);
     wl_shell_surface_set_toplevel(shell_surface);
 
-    
     wl_shell_surface_add_listener(shell_surface,
 			      &shell_surface_listener, NULL);
-
     init_egl();
     create_window();
 
@@ -322,7 +298,6 @@ int main(int argc, char **argv) {
 			     NULL);
 
     while (wl_display_dispatch(display) != -1) {
-	;
     }
 
     wl_display_disconnect(display);
