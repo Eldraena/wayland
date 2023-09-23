@@ -1,3 +1,4 @@
+//sudo apt install libwayland-client libegl1-mesa-dev libgles2-mesa-dev
 //Build:  clang -lEGL -lGL -lwayland-egl -lwayland-client wl.c -o wl
 
 #include <stdio.h>
@@ -166,7 +167,6 @@ static void create_window() {
     wl_display_dispatch(display);
     wl_display_roundtrip(display);
 }
-
 
 static void handle_ping(void *data, struct wl_shell_surface *shell_surface,
 	    uint32_t serial)
