@@ -1,3 +1,5 @@
+//Build:  clang -lEGL -lGL -lwayland-egl -lwayland-client wl.c -o wl
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
