@@ -23,12 +23,14 @@ struct wl_shell_surface *shell_surface;
 // input devices
 struct wl_seat *seat;
 struct wl_pointer *pointer;
+struct wl_keyboard *keyboard;
 
 EGLDisplay egl_display;
 EGLConfig egl_conf;
 EGLSurface egl_surface;
 EGLContext egl_context;
 
+//mouse event
 static void pointer_handle_enter(void *data, struct wl_pointer *pointer,
                      uint32_t serial, struct wl_surface *surface, wl_fixed_t sx, wl_fixed_t sy)
 {
@@ -60,16 +62,67 @@ static void pointer_handle_axis(void *data, struct wl_pointer *wl_pointer,
 }
 
 static const struct wl_pointer_listener pointer_listener = {
-    pointer_handle_enter,
-    pointer_handle_leave,
-    pointer_handle_motion,
-    pointer_handle_button,
-    pointer_handle_axis,
+    .enter = pointer_handle_enter,
+    .leave = pointer_handle_leave,
+    .motion = pointer_handle_motion,
+    .button = pointer_handle_button,
+    .axis = pointer_handle_axis,
+};
+
+//keyboard event
+static void keyboard_handle_keymap(void *data, struct wl_keyboard *keyboard,
+                       uint32_t format, int fd, uint32_t size)
+{
+}
+
+static void keyboard_handle_enter(void *data, struct wl_keyboard *keyboard,
+                      uint32_t serial, struct wl_surface *surface,
+                      struct wl_array *keys)
+{
+    fprintf(stderr, "Keyboard gained focus\n");
+}
+
+static void keyboard_handle_leave(void *data, struct wl_keyboard *keyboard,
+                      uint32_t serial, struct wl_surface *surface)
+{
+    fprintf(stderr, "Keyboard lost focus\n");
+}
+
+static void keyboard_handle_key(void *data, struct wl_keyboard *keyboard,
+                    uint32_t serial, uint32_t time, uint32_t key, uint32_t state)
+{
+    fprintf(stderr, "Key is %d state is %d\n", key, state);
+}
+
+static void keyboard_handle_modifiers(void *data, struct wl_keyboard *keyboard,
+                          uint32_t serial, uint32_t mods_depressed,
+                          uint32_t mods_latched, uint32_t mods_locked,
+                          uint32_t group)
+{
+    fprintf(stderr, "Modifiers depressed %d, latched %d, locked %d, group %d\n",
+	    mods_depressed, mods_latched, mods_locked, group);
+}
+
+static const struct wl_keyboard_listener keyboard_listener = {
+    .keymap = keyboard_handle_keymap,
+    .enter = keyboard_handle_enter,
+    .leave = keyboard_handle_leave,
+    .key = keyboard_handle_key,
+    .modifiers = keyboard_handle_modifiers,
 };
 
 static void seat_handle_capabilities(void *data, struct wl_seat *seat,
                          enum wl_seat_capability caps)
 {
+
+    if (caps & WL_SEAT_CAPABILITY_KEYBOARD) {
+	keyboard = wl_seat_get_keyboard(seat);
+	wl_keyboard_add_listener(keyboard, &keyboard_listener, NULL);
+    } else if (!(caps & WL_SEAT_CAPABILITY_KEYBOARD)) {
+	wl_keyboard_destroy(keyboard);
+	keyboard = NULL;
+    }
+    
     if ((caps & WL_SEAT_CAPABILITY_POINTER) && !pointer) {
 	pointer = wl_seat_get_pointer(seat);
 	wl_pointer_add_listener(pointer, &pointer_listener, NULL);
@@ -80,7 +133,7 @@ static void seat_handle_capabilities(void *data, struct wl_seat *seat,
 }
 
 static const struct wl_seat_listener seat_listener = {
-    seat_handle_capabilities,
+    seat_handle_capabilities
 };
 
 void global_registry_handler(void *data, struct wl_registry *registry, uint32_t id,
@@ -88,17 +141,12 @@ void global_registry_handler(void *data, struct wl_registry *registry, uint32_t 
 {
     printf("Got a registry event for %s id %d\n", interface, id);
     if (strcmp(interface, "wl_compositor") == 0) {
-        compositor = wl_registry_bind(registry, 
-				      id, 
-				      &wl_compositor_interface, 
-				      1);
+        compositor = wl_registry_bind(registry, id, 
+			&wl_compositor_interface, 1);
     } else if (strcmp(interface, "wl_shell") == 0) {
-	shell = wl_registry_bind(registry, id,
-				 &wl_shell_interface, 1);
-	
+	shell = wl_registry_bind(registry, id, &wl_shell_interface, 1);
     } else if (strcmp(interface, "wl_seat") == 0) {
-	seat = wl_registry_bind(registry, id,
-				&wl_seat_interface, 1);
+	seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
 	wl_seat_add_listener(seat, &seat_listener, NULL);
     }
 }
@@ -167,6 +215,7 @@ static void create_window() {
     wl_display_dispatch(display);
     wl_display_roundtrip(display);
 }
+
 
 static void handle_ping(void *data, struct wl_shell_surface *shell_surface,
 	    uint32_t serial)
